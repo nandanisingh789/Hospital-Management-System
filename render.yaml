@@ -56,7 +56,7 @@ services:
         fromService:
           name: hms-backend-nandani
           type: web
-          property: url
+          property: host
     routes:
       - type: rewrite
         source: /*
