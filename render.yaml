@@ -53,7 +53,10 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://hms-backend-nandani.onrender.com/api
+        fromService:
+          name: hms-backend-nandani
+          type: web
+          property: url
     routes:
       - type: rewrite
         source: /*
