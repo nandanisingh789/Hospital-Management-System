@@ -2,14 +2,12 @@
 # Push this repo to GitHub, then in Render: New -> Blueprint -> select the repo.
 # Docs: https://render.com/docs/blueprint-spec
 
-services:
-  # ---------------- MySQL Database (Private Service) ----------------
-  - type: pserv
-    name: hms-mysql-db
-    runtime: docker
-    dockerfilePath: ./database/Dockerfile
+databases:
+  - name: hms-postgres-db
+    databaseName: hospital_management_db
     plan: free
 
+services:
   # ---------------- Spring Boot Backend ----------------
   - type: web
     name: hms-backend-nandani
@@ -19,11 +17,19 @@ services:
     plan: free
     envVars:
       - key: JDBC_URL
-        value: jdbc:mysql://hms-mysql-db:3306/hospital_management_db?useSSL=false&allowPublicKeyRetrieval=true
+        value: jdbc:postgresql://${HMS_POSTGRES_DB_HOST}:${HMS_POSTGRES_DB_PORT}/${HMS_POSTGRES_DB_DATABASE}?sslmode=require
       - key: JDBC_USER
-        value: root
+        fromDatabase:
+          name: hms-postgres-db
+          property: user
       - key: JDBC_PASSWORD
-        value: rootpassword
+        fromDatabase:
+          name: hms-postgres-db
+          property: password
+      - key: DB_DRIVER
+        value: org.postgresql.Driver
+      - key: DB_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
       - key: JWT_SECRET
         generateValue: true
       - key: RAZORPAY_KEY_ID
@@ -39,9 +45,10 @@ services:
   # ---------------- Python ML Microservice ----------------
   - type: web
     name: hms-ml-service-nandani
-    runtime: docker
-    dockerfilePath: ./ml-service/Dockerfile
+    runtime: python
     rootDir: ml-service
+    buildCommand: pip install -r requirements.txt && python train_model.py
+    startCommand: gunicorn app:app
     plan: free
 
   # ---------------- React Frontend (Static Site) ----------------

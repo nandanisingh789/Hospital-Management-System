@@ -57,6 +57,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- PostgreSQL JDBC Driver -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Embedded Tomcat + JSP support (Servlet + JSP MVC pages) -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
