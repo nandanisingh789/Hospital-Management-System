@@ -1,0 +1,53 @@
+# Render Blueprint - deploys all 3 services together.
+# Push this repo to GitHub, then in Render: New -> Blueprint -> select the repo.
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # ---------------- Spring Boot Backend ----------------
+  - type: web
+    name: hms-backend-nandani
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    rootDir: backend
+    plan: free
+    envVars:
+      - key: JDBC_URL
+        sync: false        # Set to your Aiven MySQL connection string (e.g. jdbc:mysql://mysql-xxx.aivencloud.com:xxx/hospital_management_db?useSSL=true)
+      - key: JDBC_USER
+        sync: false        # Set to your Aiven MySQL username (usually 'avnadmin')
+      - key: JDBC_PASSWORD
+        sync: false        # Set to your Aiven MySQL password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: ML_SERVICE_URL
+        fromService:
+          name: hms-ml-service-nandani
+          type: web
+          property: hostport
+
+  # ---------------- Python ML Microservice ----------------
+  - type: web
+    name: hms-ml-service-nandani
+    runtime: docker
+    dockerfilePath: ./ml-service/Dockerfile
+    rootDir: ml-service
+    plan: free
+
+  # ---------------- React Frontend (Static Site) ----------------
+  - type: web
+    name: hms-frontend-nandani
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://hms-backend-nandani.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

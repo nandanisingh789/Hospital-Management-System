@@ -1,0 +1,35 @@
+# Java / Maven
+backend/target/
+*.class
+*.jar
+*.war
+!maven-wrapper.jar
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+npm-debug.log*
+
+# Python
+ml-service/__pycache__/
+ml-service/*.pyc
+ml-service/venv/
+ml-service/env/
+ml-service/model.pkl
+ml-service/label_encoder.pkl
+ml-service/dataset/*.csv
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.env.local
+application-local.properties
