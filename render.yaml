@@ -3,6 +3,13 @@
 # Docs: https://render.com/docs/blueprint-spec
 
 services:
+  # ---------------- MySQL Database (Private Service) ----------------
+  - type: pserv
+    name: hms-mysql-db
+    runtime: docker
+    dockerfilePath: ./database/Dockerfile
+    plan: free
+
   # ---------------- Spring Boot Backend ----------------
   - type: web
     name: hms-backend-nandani
@@ -12,11 +19,11 @@ services:
     plan: free
     envVars:
       - key: JDBC_URL
-        sync: false        # Set to your Aiven MySQL connection string (e.g. jdbc:mysql://mysql-xxx.aivencloud.com:xxx/hospital_management_db?useSSL=true)
+        value: jdbc:mysql://hms-mysql-db:3306/hospital_management_db?useSSL=false&allowPublicKeyRetrieval=true
       - key: JDBC_USER
-        sync: false        # Set to your Aiven MySQL username (usually 'avnadmin')
+        value: root
       - key: JDBC_PASSWORD
-        sync: false        # Set to your Aiven MySQL password
+        value: rootpassword
       - key: JWT_SECRET
         generateValue: true
       - key: RAZORPAY_KEY_ID
