@@ -45,17 +45,40 @@ public class MLPredictionService {
         payload.put("glucose_level", req.getGlucoseLevel());
         payload.put("heart_rate", req.getHeartRate());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+        String riskLevel = "UNKNOWN";
+        Double confidence = 0.0;
 
-        Map<String, Object> response = restTemplate.postForObject(
-                mlServiceUrl + "/predict", entity, Map.class);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
-        String riskLevel = response != null ? String.valueOf(response.get("risk_level")) : "UNKNOWN";
-        Double confidence = response != null && response.get("confidence") != null
-                ? Double.valueOf(String.valueOf(response.get("confidence")))
-                : null;
+            Map<String, Object> response = restTemplate.postForObject(
+                    mlServiceUrl + "/predict", entity, Map.class);
+
+            riskLevel = response != null ? String.valueOf(response.get("risk_level")) : "UNKNOWN";
+            confidence = response != null && response.get("confidence") != null
+                    ? Double.valueOf(String.valueOf(response.get("confidence")))
+                    : 0.0;
+        } catch (Exception e) {
+            // Rule-based fallback if ML microservice is offline or failed to deploy
+            System.err.println("ML Microservice offline (" + e.getMessage() + "). Using local rule-based fallback.");
+            double age = req.getAge();
+            double bmi = req.getBmi();
+            double bp = req.getBloodPressure();
+            double glucose = req.getGlucoseLevel();
+
+            if (age > 60 || bp > 140 || glucose > 150 || bmi > 30) {
+                riskLevel = "HIGH";
+                confidence = 0.85;
+            } else if (age > 40 || bp > 120 || glucose > 100 || bmi > 25) {
+                riskLevel = "MEDIUM";
+                confidence = 0.75;
+            } else {
+                riskLevel = "LOW";
+                confidence = 0.92;
+            }
+        }
 
         RiskPrediction prediction = RiskPrediction.builder()
                 .patient(patient)

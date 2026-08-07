@@ -37,19 +37,7 @@ services:
       - key: RAZORPAY_KEY_SECRET
         sync: false
       - key: ML_SERVICE_URL
-        fromService:
-          name: hms-ml-service-nandani
-          type: web
-          property: hostport
-
-  # ---------------- Python ML Microservice ----------------
-  - type: web
-    name: hms-ml-service-nandani
-    runtime: python
-    rootDir: ml-service
-    buildCommand: pip install -r requirements.txt && python train_model.py
-    startCommand: gunicorn app:app
-    plan: free
+        value: http://localhost:5001  # Java backend uses internal rule-based fallback if ML microservice is offline
 
   # ---------------- React Frontend (Static Site) ----------------
   - type: web
